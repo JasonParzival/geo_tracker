@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geo_tracker/attributes_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -10,6 +12,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   bool _isRecording = false;
   int _seconds = 0;
+  Timer? _timer;
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _seconds++;
+      });
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +73,14 @@ class _MainScreenState extends State<MainScreen> {
                     setState(() {
                       if (_isRecording) {
                         _isRecording = false;
-                        // Здесь будет открываться окно атрибутов
+                        _stopTimer();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AttributesScreen()),
+                        );
                       } else {
                         _isRecording = true;
+                        _startTimer();
                       }
                     });
                   },
