@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:geo_tracker/models/trip.dart';
 
 class AttributesScreen extends StatefulWidget {
   const AttributesScreen({super.key});
@@ -27,7 +29,7 @@ class _AttributesScreenState extends State<AttributesScreen> {
     'Досуг'
   ];
 
-  void _submit() {
+  void _submit() async {
     if (_selectedTransport == null || _selectedPurpose == null) {
       setState(() {
         _errorMessage = 'Необходимо заполнить все поля';
@@ -35,8 +37,20 @@ class _AttributesScreenState extends State<AttributesScreen> {
       return;
     }
 
-    // Здесь будет логика отправки данных
-    print('Отправка: $_selectedTransport, $_selectedPurpose');
+    final trip = Trip(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      startTime: DateTime.now().subtract(const Duration(seconds: 10)),
+      endTime: DateTime.now(),
+      duration: 10,
+      distance: 0.0,
+      transportType: _selectedTransport!,
+      tripPurpose: _selectedPurpose!,
+    );
+
+    final box = await Hive.openBox<Trip>('trips');
+    await box.add(trip);
+
+    print('Поездка сохранена: ${trip.id}');
     Navigator.pop(context);
   }
 
