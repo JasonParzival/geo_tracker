@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geo_tracker/attributes_screen.dart';
+import 'package:geo_tracker/history_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -112,10 +113,35 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildToolButton(String label, IconData icon) {
+    // Создаём карту действий для каждой кнопки
+    VoidCallback? onPressed;
+    switch (label) {
+      case 'Атрибуты':
+        onPressed = () {
+          // Открыть атрибуты
+        };
+        break;
+      case 'История':
+        onPressed = () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HistoryScreen()),
+          );
+        };
+        break;
+      case 'Настройки':
+        onPressed = () {
+          // Открыть настройки
+        };
+        break;
+      default:
+        onPressed = () {};
+    }
+
     return Column(
       children: [
         IconButton(
-          onPressed: () {},
+          onPressed: onPressed,
           icon: Icon(icon, size: 32),
         ),
         Text(label, style: const TextStyle(fontSize: 12)),
