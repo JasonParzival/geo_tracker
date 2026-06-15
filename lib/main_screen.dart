@@ -4,6 +4,10 @@ import 'package:geo_tracker/attributes_screen.dart';
 import 'package:geo_tracker/history_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geo_tracker/widgets/trip_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geo_tracker/services/location_service.dart';
+import 'package:geo_tracker/models/track_point.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,10 +20,80 @@ class _MainScreenState extends State<MainScreen> {
   bool _isRecording = false;
   int _seconds = 0;
   Timer? _timer;
+  String? _currentTripId;
 
   final Set<Polyline> _polylines = {};
   final Set<Marker> _markers = {};
   int _pointCount = 0;
+
+  final LocationService _locationService = LocationService();
+  final List<LatLng> _trackPoints = [];
+  Timer? _trackTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocation();
+  }
+
+  Future<void> _initLocation() async {
+    final hasPermission = await _locationService.requestPermission();
+    if (!hasPermission) {
+      // Показать сообщение об ошибке
+      return;
+    }
+  }
+
+  void _startTracking() {
+    final tripId = _currentTripId;
+    if (tripId == null) return;
+    
+    _trackTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      final position = await Geolocator.getCurrentPosition();
+      final point = TrackPoint(
+        tripId: tripId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        timestamp: DateTime.now(),
+        speed: position.speed,
+      );
+      
+      // Сохраняем в Hive
+      final box = await Hive.openBox<TrackPoint>('trackPoints');
+      await box.add(point);
+      
+      setState(() {
+        _trackPoints.add(LatLng(position.latitude, position.longitude));
+        _updateMap();
+      });
+    });
+  }
+
+  void _updateMap() {
+    if (_trackPoints.isEmpty) return;
+    _markers.clear();
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('start'),
+        position: _trackPoints.first,
+      ),
+    );
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('current'),
+        position: _trackPoints.last,
+      ),
+    );
+    _polylines.clear();
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('track'),
+        points: _trackPoints,
+        color: Colors.blue,
+        width: 5,
+      ),
+    );
+  }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -88,16 +162,23 @@ class _MainScreenState extends State<MainScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      if (_isRecording) {
+                      if (!_isRecording) {
+                        // Запуск записи
+                        _isRecording = true;
+                        _currentTripId = DateTime.now().millisecondsSinceEpoch.toString();
+                        _startTimer();
+                        _startTracking();
+                      } else {
+                        // Остановка записи
                         _isRecording = false;
                         _stopTimer();
+                        final tripId = _currentTripId!;
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AttributesScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => AttributesScreen(tripId: tripId),
+                          ),
                         );
-                      } else {
-                        _isRecording = true;
-                        _startTimer();
                       }
                     });
                   },

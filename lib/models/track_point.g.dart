@@ -17,24 +17,27 @@ class TrackPointAdapter extends TypeAdapter<TrackPoint> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TrackPoint(
-      latitude: fields[0] as double,
-      longitude: fields[1] as double,
-      timestamp: fields[2] as DateTime,
-      speed: fields[3] as double,
+      tripId: fields[0] as String,
+      latitude: fields[1] as double,
+      longitude: fields[2] as double,
+      timestamp: fields[3] as DateTime,
+      speed: fields[4] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrackPoint obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.latitude)
+      ..write(obj.tripId)
       ..writeByte(1)
-      ..write(obj.longitude)
+      ..write(obj.latitude)
       ..writeByte(2)
-      ..write(obj.timestamp)
+      ..write(obj.longitude)
       ..writeByte(3)
+      ..write(obj.timestamp)
+      ..writeByte(4)
       ..write(obj.speed);
   }
 

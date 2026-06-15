@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:geo_tracker/models/trip.dart';
+import 'package:geo_tracker/map_detail_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -11,9 +12,9 @@ class HistoryScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('История поездок'),
       ),
-      body: ValueListenableBuilder(
+      body: ValueListenableBuilder<Box<Trip>>(
         valueListenable: Hive.box<Trip>('trips').listenable(),
-        builder: (context, Box<Trip> box, _) {
+        builder: (context, box, _) {
           if (box.isEmpty) {
             return const Center(
               child: Text('Нет сохранённых поездок'),
@@ -21,11 +22,12 @@ class HistoryScreen extends StatelessWidget {
           }
 
           return ListView.builder(
-            itemCount: box.length,
+            itemCount: box.keys.length,
             itemBuilder: (context, index) {
-              final trip = box.getAt(index);
+              final key = box.keys.elementAt(index);
+              final trip = box.get(key);
               if (trip == null) return const SizedBox.shrink();
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -37,7 +39,12 @@ class HistoryScreen extends StatelessWidget {
                     style: const TextStyle(fontSize: 20),
                   ),
                   onTap: () {
-                    // Здесь будет открытие деталей поездки
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MapDetailScreen(trip: trip),
+                      ),
+                    );
                   },
                 ),
               );

@@ -3,7 +3,8 @@ import 'package:hive/hive.dart';
 import 'package:geo_tracker/models/trip.dart';
 
 class AttributesScreen extends StatefulWidget {
-  const AttributesScreen({super.key});
+  final String tripId;
+  const AttributesScreen({super.key, required this.tripId});
 
   @override
   State<AttributesScreen> createState() => _AttributesScreenState();
@@ -38,7 +39,7 @@ class _AttributesScreenState extends State<AttributesScreen> {
     }
 
     final trip = Trip(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.tripId,
       startTime: DateTime.now().subtract(const Duration(seconds: 10)),
       endTime: DateTime.now(),
       duration: 10,
@@ -48,9 +49,8 @@ class _AttributesScreenState extends State<AttributesScreen> {
     );
 
     final box = await Hive.openBox<Trip>('trips');
-    await box.add(trip);
+    await box.put(widget.tripId, trip);  // <-- ключ = tripId
 
-    print('Поездка сохранена: ${trip.id}');
     Navigator.pop(context);
   }
 

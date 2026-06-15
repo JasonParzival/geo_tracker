@@ -16,6 +16,7 @@ void main() async {
   
   // Открываем коробку для поездок
   await Hive.openBox<Trip>('trips');
+  await Hive.openBox<TrackPoint>('trackPoints');
   
   runApp(const MyApp());
 }
