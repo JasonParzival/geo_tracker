@@ -12,6 +12,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isConsentGiven = true;
 
   @override
+  void initState() {
+    super.initState();
+    _loadConsent();
+  }
+
+  Future<void> _loadConsent() async {
+    final box = await Hive.openBox<bool>('settings');
+    final consent = box.get('consent', defaultValue: true) ?? true;  
+    setState(() {
+      _isConsentGiven = consent;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +51,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Text('Согласие на обработку ПД'),
                 Switch(
                   value: _isConsentGiven,
-                  onChanged: (value) {
+                  onChanged: (value) async {
+                    final box = await Hive.openBox<bool>('settings');
+                    await box.put('consent', value);
                     setState(() {
                       _isConsentGiven = value;
                     });

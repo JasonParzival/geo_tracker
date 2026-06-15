@@ -109,6 +109,37 @@ class _MainScreenState extends State<MainScreen> {
     _timer = null;
   }
 
+  void _showConsentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Согласие на обработку данных'),
+        content: const Text(
+          'Для записи поездок необходимо ваше согласие на обработку персональных данных. Пожалуйста, включите согласие в настройках.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Переходим в настройки
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+            child: const Text('Перейти в настройки'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Отмена'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,27 +192,32 @@ class _MainScreenState extends State<MainScreen> {
                 width: 100,
                 height: 100,
                 child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (!_isRecording) {
-                        // Запуск записи
-                        _isRecording = true;
-                        _currentTripId = DateTime.now().millisecondsSinceEpoch.toString();
-                        _startTimer();
-                        _startTracking();
-                      } else {
-                        // Остановка записи
-                        _isRecording = false;
-                        _stopTimer();
-                        final tripId = _currentTripId!;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AttributesScreen(tripId: tripId),
-                          ),
-                        );
+                  onPressed: () async {  // <-- добавьте async
+                    if (!_isRecording) {
+                      // Проверяем согласие перед стартом
+                      final box = await Hive.openBox<bool>('settings');
+                      final consent = box.get('consent', defaultValue: true) ?? true;
+                      
+                      if (!consent) {
+                        _showConsentDialog();
+                        return;
                       }
-                    });
+                      
+                      _isRecording = true;
+                      _currentTripId = DateTime.now().millisecondsSinceEpoch.toString();
+                      _startTimer();
+                      _startTracking();
+                    } else {
+                      _isRecording = false;
+                      _stopTimer();
+                      final tripId = _currentTripId!;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AttributesScreen(tripId: tripId),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
