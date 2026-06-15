@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geo_tracker/attributes_screen.dart';
 import 'package:geo_tracker/history_screen.dart';
+import 'package:geo_tracker/settings_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geo_tracker/widgets/trip_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -215,7 +216,10 @@ class _MainScreenState extends State<MainScreen> {
     switch (label) {
       case 'Атрибуты':
         onPressed = () {
-          // Открыть атрибуты
+          /*Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SettingsScreen()),
+          );*/
         };
         break;
       case 'История':
@@ -228,7 +232,10 @@ class _MainScreenState extends State<MainScreen> {
         break;
       case 'Настройки':
         onPressed = () {
-          // Открыть настройки
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SettingsScreen()),
+          );
         };
         break;
       default:
