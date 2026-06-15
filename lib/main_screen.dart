@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geo_tracker/attributes_screen.dart';
 import 'package:geo_tracker/history_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geo_tracker/widgets/trip_map.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,6 +16,10 @@ class _MainScreenState extends State<MainScreen> {
   bool _isRecording = false;
   int _seconds = 0;
   Timer? _timer;
+
+  final Set<Polyline> _polylines = {};
+  final Set<Marker> _markers = {};
+  int _pointCount = 0;
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -37,6 +43,16 @@ class _MainScreenState extends State<MainScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
+          Expanded(
+            child: TripMap(
+              initialCameraPosition: const CameraPosition(
+                target: LatLng(55.7558, 37.6176),
+                zoom: 14,
+              ),
+              markers: _markers,
+              polylines: _polylines,
+            ),
+          ),
           // Статус
           Center(
             child: Text(
