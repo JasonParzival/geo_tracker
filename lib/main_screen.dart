@@ -152,7 +152,7 @@ class _MainScreenState extends State<MainScreen> {
           Expanded(
             child: TripMap(
               initialCameraPosition: const CameraPosition(
-                target: LatLng(55.7558, 37.6176),
+                target: LatLng(52.2854, 104.2894),
                 zoom: 14,
               ),
               markers: _markers,
@@ -210,6 +210,7 @@ class _MainScreenState extends State<MainScreen> {
                     } else {
                       _isRecording = false;
                       _stopTimer();
+                      _seconds = 0;
                       final tripId = _currentTripId!;
                       Navigator.push(
                         context,
@@ -232,11 +233,9 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
           const SizedBox(height: 30),
-          // Остальные кнопки (Атрибуты, История, Настройки)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildToolButton('Атрибуты', Icons.label),
               _buildToolButton('История', Icons.history),
               _buildToolButton('Настройки', Icons.settings),
             ],
@@ -250,14 +249,6 @@ class _MainScreenState extends State<MainScreen> {
     // Создаём карту действий для каждой кнопки
     VoidCallback? onPressed;
     switch (label) {
-      case 'Атрибуты':
-        onPressed = () {
-          /*Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SettingsScreen()),
-          );*/
-        };
-        break;
       case 'История':
         onPressed = () {
           Navigator.push(

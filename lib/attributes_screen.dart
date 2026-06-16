@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:geo_tracker/models/trip.dart';
 
 class AttributesScreen extends StatefulWidget {
@@ -14,6 +14,7 @@ class _AttributesScreenState extends State<AttributesScreen> {
   String? _selectedTransport;
   String? _selectedPurpose;
   String? _errorMessage;
+  bool _isEditMode = false;
 
   final List<String> _transportTypes = [
     'Легковой автомобиль',
@@ -30,6 +31,24 @@ class _AttributesScreenState extends State<AttributesScreen> {
     'Досуг'
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadTripIfExists();
+  }
+
+  Future<void> _loadTripIfExists() async {
+    final box = await Hive.openBox<Trip>('trips');
+    final existingTrip = box.get(widget.tripId);
+    if (existingTrip != null) {
+      setState(() {
+        _selectedTransport = existingTrip.transportType;
+        _selectedPurpose = existingTrip.tripPurpose;
+        _isEditMode = true;
+      });
+    }
+  }
+
   void _submit() async {
     if (_selectedTransport == null || _selectedPurpose == null) {
       setState(() {
@@ -38,20 +57,32 @@ class _AttributesScreenState extends State<AttributesScreen> {
       return;
     }
 
+    final box = await Hive.openBox<Trip>('trips');
     final trip = Trip(
       id: widget.tripId,
-      startTime: DateTime.now().subtract(const Duration(seconds: 10)),
-      endTime: DateTime.now(),
-      duration: 10,
-      distance: 0.0,
+      startTime: _isEditMode
+          ? (box.get(widget.tripId)?.startTime ?? DateTime.now())
+          : DateTime.now().subtract(const Duration(seconds: 10)),
+      endTime: _isEditMode
+          ? (box.get(widget.tripId)?.endTime ?? DateTime.now())
+          : DateTime.now(),
+      duration: _isEditMode
+          ? (box.get(widget.tripId)?.duration ?? 10)
+          : 10,
+      distance: _isEditMode
+          ? (box.get(widget.tripId)?.distance ?? 0.0)
+          : 0.0,
       transportType: _selectedTransport!,
       tripPurpose: _selectedPurpose!,
+      isUploaded: _isEditMode
+          ? (box.get(widget.tripId)?.isUploaded ?? false)
+          : false,
     );
 
-    final box = await Hive.openBox<Trip>('trips');
-    await box.put(widget.tripId, trip);  // <-- ключ = tripId
-
-    Navigator.pop(context);
+    await box.put(widget.tripId, trip);
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
   }
 
   @override
@@ -116,7 +147,7 @@ class _AttributesScreenState extends State<AttributesScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _submit,
-                child: const Text('Отправить'),
+                child: Text(_isEditMode ? 'Сохранить изменения' : 'Отправить'),
               ),
             ),
           ],

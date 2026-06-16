@@ -68,7 +68,7 @@ class _MapDetailScreenState extends State<MapDetailScreen> {
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
           target: _markers.isEmpty 
-              ? const LatLng(55.7558, 37.6176) 
+              ? const LatLng(52.2854, 104.2894) 
               : _markers.first.position,
           zoom: 14,
         ),
